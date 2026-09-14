@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WeatherWise — Seattle 7-Day Forecast</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="app-header">
+      <div class="brand">
+        <span class="brand-icon" aria-hidden="true">⛅</span>
+        <h1 class="brand-name">WeatherWise</h1>
+      </div>
+      <div class="location">
+        <span class="location-pin" aria-hidden="true">📍</span>
+        <div class="location-text">
+          <span class="location-city">Seattle, WA</span>
+          <span class="location-sub">7-Day Forecast</span>
+        </div>
+      </div>
+    </header>
+
+    <section class="status" id="status" aria-live="polite">
+      Loading the latest forecast for Seattle…
+    </section>
+
+    <section class="forecast" id="forecast" aria-label="7 day weather forecast for Seattle">
+      <!-- Forecast cards are injected here by app.js -->
+    </section>
+
+    <footer class="app-footer">
+      <span id="updated">&nbsp;</span>
+      <span class="footer-note">WeatherWise · Training demo app</span>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
