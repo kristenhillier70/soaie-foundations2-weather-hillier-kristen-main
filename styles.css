@@ -102,6 +102,74 @@ body {
   display: none;
 }
 
+.sunset-heading {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.sunset-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+.sunset-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  padding: 14px 12px;
+  text-align: center;
+  backdrop-filter: blur(6px);
+  box-shadow: var(--shadow);
+}
+
+.sunset-day {
+  font-weight: 700;
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.sunset-time {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.sunset-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 10px;
+  border-radius: 999px;
+  margin-bottom: 8px;
+}
+
+.sunset-badge.quality-great {
+  background: rgba(96, 213, 129, 0.25);
+  color: #8ff0ac;
+}
+
+.sunset-badge.quality-fair {
+  background: rgba(255, 209, 102, 0.25);
+  color: var(--accent);
+}
+
+.sunset-badge.quality-poor {
+  background: rgba(255, 118, 118, 0.25);
+  color: #ffb4b4;
+}
+
+.sunset-note {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  min-height: 2.2em;
+}
+
 .forecast {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
