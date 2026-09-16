@@ -39,12 +39,41 @@ function buildApiUrl() {
   const params = new URLSearchParams({
     latitude: SEATTLE.latitude,
     longitude: SEATTLE.longitude,
-    daily: "weather_code,temperature_2m_max,temperature_2m_min",
+    daily: "weather_code,temperature_2m_max,temperature_2m_min,sunset",
     temperature_unit: "fahrenheit",
     timezone: "America/Los_Angeles",
     forecast_days: "7",
   });
   return `https://api.open-meteo.com/v1/forecast?${params.toString()}`;
+}
+
+// Photo-quality tiers by weather code: how long before sunset to shoot,
+// the expected quality of the shot, and why.
+const SUNSET_PHOTO_TIERS = {
+  0: { offsetMinutes: 20, quality: "Great", note: "Clear skies — soft golden light" },
+  1: { offsetMinutes: 15, quality: "Great", note: "Clouds may catch vivid color" },
+  2: { offsetMinutes: 15, quality: "Great", note: "Clouds may catch vivid color" },
+  3: { offsetMinutes: 10, quality: "Fair", note: "Overcast — colors may be muted" },
+  45: { offsetMinutes: 10, quality: "Poor", note: "Fog may obscure the sunset" },
+  48: { offsetMinutes: 10, quality: "Poor", note: "Fog may obscure the sunset" },
+};
+const DEFAULT_SUNSET_PHOTO_TIER = {
+  offsetMinutes: 10,
+  quality: "Poor",
+  note: "Precipitation expected — sunset may not be visible",
+};
+
+// Best moment to shoot the sunset: a bit before actual sunset, adjusted
+// for expected cloud cover.
+function getSunsetPhotoTime(day) {
+  const sunset = day.sunset ? new Date(day.sunset) : null;
+  if (!sunset || Number.isNaN(sunset.getTime())) {
+    return { time: null, label: "—", quality: "Poor", note: "Sunset time unavailable" };
+  }
+  const tier = SUNSET_PHOTO_TIERS[day.code] || DEFAULT_SUNSET_PHOTO_TIER;
+  const time = new Date(sunset.getTime() - tier.offsetMinutes * 60 * 1000);
+  const label = time.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  return { time, label, quality: tier.quality, note: tier.note };
 }
 
 async function fetchForecast() {
@@ -59,6 +88,7 @@ async function fetchForecast() {
     code: daily.weather_code[i],
     high: Math.round(daily.temperature_2m_max[i]),
     low: Math.round(daily.temperature_2m_min[i]),
+    sunset: daily.sunset[i],
   }));
 }
 
@@ -67,15 +97,18 @@ function sampleForecast() {
   const codes = [3, 61, 2, 1, 0, 2, 63];
   const highs = [64, 59, 66, 71, 74, 68, 61];
   const lows = [52, 49, 51, 54, 56, 53, 50];
+  const sunsetTimes = ["19:05", "19:03", "19:01", "18:59", "18:57", "18:55", "18:53"];
   const today = new Date();
   return codes.map((code, i) => {
     const d = new Date(today);
     d.setDate(today.getDate() + i);
+    const dateStr = d.toISOString().slice(0, 10);
     return {
-      date: d.toISOString().slice(0, 10),
+      date: dateStr,
       code,
       high: highs[i],
       low: lows[i],
+      sunset: `${dateStr}T${sunsetTimes[i]}`,
     };
   });
 }
@@ -113,6 +146,24 @@ function renderForecast(days) {
   });
 }
 
+function renderSunsetTimes(days) {
+  const container = document.getElementById("sunset-times");
+  container.innerHTML = "";
+
+  days.forEach((day, index) => {
+    const photoTime = getSunsetPhotoTime(day);
+    const card = document.createElement("article");
+    card.className = "sunset-card";
+    card.innerHTML = `
+      <div class="sunset-day">${formatDayName(day.date, index)}</div>
+      <div class="sunset-time">${photoTime.label}</div>
+      <span class="sunset-badge quality-${photoTime.quality.toLowerCase()}">${photoTime.quality}</span>
+      <div class="sunset-note">${photoTime.note}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
 function setStatus(message, isError = false) {
   const status = document.getElementById("status");
   if (!message) {
@@ -138,11 +189,14 @@ async function init() {
   try {
     const days = await fetchForecast();
     renderForecast(days);
+    renderSunsetTimes(days);
     setStatus("");
     setUpdatedLabel(false);
   } catch (err) {
     console.warn("Falling back to sample forecast:", err);
-    renderForecast(sampleForecast());
+    const days = sampleForecast();
+    renderForecast(days);
+    renderSunsetTimes(days);
     setStatus("Showing sample data — live forecast is unavailable.", true);
     setUpdatedLabel(true);
   }
